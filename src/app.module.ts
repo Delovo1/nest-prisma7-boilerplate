@@ -1,15 +1,25 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config'; // Импортируем модуль конфигурации
-import { PrismaModule } from './prisma/prisma.module';
-import { UsersModule } from './users/users.module';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config'; 
+import { AuthService } from './auth/auth.service';
+import { AuthController } from './auth/auth.controller';
+import { UsersModule } from './users/users.module'; 
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }), // Добавляем ПЕРВЫМ, чтобы .env прочитался сразу!
-    PrismaModule,
-    UsersModule,
+    JwtModule.registerAsync({
+      inject: [ConfigService], 
+        useFactory: async (configService: ConfigService) => ({
+          secret: configService.get<string>('JWT_SECRET'),
+          signOptions: {
+            expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
+          },
+      })
+    }),
+    UsersModule, 
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AuthController],
+  providers: [AuthService],
+  exports: [AuthService], 
 })
-export class AppModule {}
+export class AuthModule {}

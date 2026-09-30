@@ -6,22 +6,41 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Таблица пользователей
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String?
-  name      String?
-  posts     Post[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int      @id @default(autoincrement()) // В SQL: id SERIAL PRIMARY KEY
+  username  String   @unique                       // В SQL: username TEXT UNIQUE
+  password  String                                 // В SQL: password TEXT
+  basket    Basket?                                // Виртуальное поле для NestJS
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// Таблица корзин (ID корзины равен ID пользователя)
+model Basket {
+  id        Int             @id                    // В SQL: id INT PRIMARY KEY
+  user      User            @relation(fields: [id], references: [id], onDelete: Cascade) // В SQL: REFERENCES "User"(id)
+  products  BasketProduct[]                        // Виртуальное поле для NestJS
+}
+
+// Таблица связей товаров и корзин (Многие-ко-Многим)
+model BasketProduct {
+  basketId  Int                                    // В SQL: basketId INT
+  productId Int                                    // В SQL: productId INT
+  quantity  Int             @default(1)            // В SQL: quantity INT DEFAULT 1
+
+  // Настройка внешних ключей в SQL:
+  basket    Basket          @relation(fields: [basketId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([basketId, productId])                      // В SQL: PRIMARY KEY (basketId, productId)
+}
+
+// Таблица товаров
+model Product {
+  id          Int             @id @default(autoincrement()) // В SQL: id SERIAL PRIMARY KEY
+  name        String
+  price       Float
+  description String?
+  category    String
+  imageSrc    String?
+  baskets     BasketProduct[]                               // Виртуальное поле для NestJS
 }

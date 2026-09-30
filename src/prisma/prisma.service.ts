@@ -4,11 +4,14 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   constructor() {
     // 1. Создаем пул соединений через стандартный драйвер 'pg'
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    
+
     // 2. Оборачиваем его в официальный адаптер Prisma 7
     const adapter = new PrismaPg(pool);
 
