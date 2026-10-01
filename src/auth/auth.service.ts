@@ -1,10 +1,12 @@
 import { UnauthorizedException, ConflictException, BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService) {}
+
     
     async createUser(data: { username?: string; password?: string }) {
     if (!data.username || !data.password) {
@@ -23,7 +25,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     // 4. Создаем запись
-    return this.prisma.user.create({
+    const newUser = await this.prisma.user.create({
       data: {
         username: data.username,
         password: hashedPassword,
@@ -33,6 +35,12 @@ export class AuthService {
         username: true,
       },
     });
+    const payload = { sub: newUser.id, username: newUser.username };
+    const token = await this.jwtService.signAsync(payload);
+    return {
+      user: newUser,
+      access_token: token,
+    };
   }
 
   async logInUser(data: { username?: string; password?: string } ) {
@@ -46,10 +54,19 @@ export class AuthService {
       throw new UnauthorizedException('Неверный логин или пароль!');
     }
     const isMatch = await bcrypt.compare(data.password, user.password);
-    if(isMatch) {
-        return "Okey, thats really you"
+    if(!isMatch) {
+        throw new UnauthorizedException('Неверный логин или пароль');
     } 
-    return "No, you are lying me"
+    const payload = { sub: user.id, username: user.username };
+    const token = await this.jwtService.signAsync(payload);
+
+    return {
+      user: {
+        id: user.id,
+        username: user.username,
+      },
+      access_token: token,
+    };
   }
     
 }
