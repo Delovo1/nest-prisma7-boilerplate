@@ -2,13 +2,14 @@ import { UnauthorizedException, ConflictException, BadRequestException, Injectab
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { AuthDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
     constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService) {}
 
     
-    async createUser(data: { username?: string; password?: string }) {
+    async createUser(data: AuthDto) {
     if (!data.username || !data.password) {
       throw new BadRequestException('Логин и пароль обязательны для заполнения');
     }
@@ -43,7 +44,7 @@ export class AuthService {
     };
   }
 
-  async logInUser(data: { username?: string; password?: string } ) {
+  async logInUser(data: AuthDto) {
      if (!data.username || !data.password) {
       throw new BadRequestException('Логин и пароль обязательны для заполнения');
     }
