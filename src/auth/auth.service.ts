@@ -10,10 +10,6 @@ export class AuthService {
 
     
     async createUser(data: AuthDto) {
-    if (!data.username || !data.password) {
-      throw new BadRequestException('Логин и пароль обязательны для заполнения');
-    }
-
     const candidate = await this.prisma.user.findUnique({
       where: { username: data.username },
     });
@@ -30,13 +26,18 @@ export class AuthService {
       data: {
         username: data.username,
         password: hashedPassword,
+        basket: {
+          create: {}, 
+        },
       },
       select: {
         id: true,
         username: true,
+        role: true, 
       },
     });
-    const payload = { sub: newUser.id, username: newUser.username };
+
+    const payload = { sub: newUser.id, username: newUser.username, role: newUser.role };
     const token = await this.jwtService.signAsync(payload);
     return {
       user: newUser,
@@ -45,9 +46,6 @@ export class AuthService {
   }
 
   async logInUser(data: AuthDto) {
-     if (!data.username || !data.password) {
-      throw new BadRequestException('Логин и пароль обязательны для заполнения');
-    }
     const user = await this.prisma.user.findUnique({
       where: { username: data.username },
     });

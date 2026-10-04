@@ -6,9 +6,16 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
 // Таблица пользователей
 model User {
-  id        Int      @id @default(autoincrement()) // В SQL: id SERIAL PRIMARY KEY
+  id        Int      @id @default(autoincrement()) // В SQL: id SERIAL PRIMARY KEY\
+  role      Role     @default(BUYER)
   username  String   @unique                       // В SQL: username TEXT UNIQUE
   password  String                                 // В SQL: password TEXT
   basket    Basket?                                // Виртуальное поле для NestJS
@@ -34,13 +41,20 @@ model BasketProduct {
   @@id([basketId, productId])                      // В SQL: PRIMARY KEY (basketId, productId)
 }
 
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique                       // Например: "Электроника"
+  products Product[]                               // Виртуальное поле связи для NestJS
+}
+
 // Таблица товаров
 model Product {
   id          Int             @id @default(autoincrement()) // В SQL: id SERIAL PRIMARY KEY
   name        String
   price       Float
   description String?
-  category    String
   imageSrc    String?
-  baskets     BasketProduct[]                               // Виртуальное поле для NestJS
+  categoryId  Int                                    
+  category    Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  baskets     BasketProduct[]
 }
