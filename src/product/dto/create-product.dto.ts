@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsNotEmpty, MinLength, MaxLength, Min, IsPositive, IsOptional } from 'class-validator';
+import { IsArray, IsString, IsNumber, IsNotEmpty, MinLength, MaxLength, Min, IsPositive, IsOptional } from 'class-validator';
 
 export class CreateProductDto {
   @IsString({ message: 'Название товара должно быть строкой' })
@@ -21,7 +21,8 @@ export class CreateProductDto {
   @IsOptional() // Поле imageSrc в Prisma тоже необязательное
   imageSrc?: string;
 
-  @IsNumber({}, { message: 'ID категории должно быть числом' })
-  @IsNotEmpty({ message: 'Категория товара обязательна для заполнения' })
-  categoryId: number; // Передаем ID созданной ранее категории
+  @IsArray({ message: 'Категории должны быть переданы в виде массива' })
+  @IsNotEmpty({ message: 'Товар должен быть привязан хотя бы к одной категории' })
+  @IsNumber({}, { each: true, message: 'Каждый ID категории должен быть числом' })
+  categoryIds: number[]; 
 }

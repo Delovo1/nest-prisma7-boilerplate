@@ -42,19 +42,29 @@ model BasketProduct {
 }
 
 model Category {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique                       // Например: "Электроника"
-  products Product[]                               // Виртуальное поле связи для NestJS
+  id       Int               @id @default(autoincrement())
+  name     String            @unique
+  products ProductCategory[] // Связь с промежуточной таблицей
 }
 
 // Таблица товаров
 model Product {
-  id          Int             @id @default(autoincrement()) // В SQL: id SERIAL PRIMARY KEY
+  id          Int               @id @default(autoincrement())
   name        String
   price       Float
   description String?
   imageSrc    String?
-  categoryId  Int                                    
-  category    Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categories  ProductCategory[] // Связь с промежуточной таблицей
   baskets     BasketProduct[]
+}
+
+// Промежуточная таблица связей Товаров и Категорий (Многие-ко-Многим)
+model ProductCategory {
+  productId  Int
+  categoryId Int
+  
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId]) // Составной первичный ключ
 }
