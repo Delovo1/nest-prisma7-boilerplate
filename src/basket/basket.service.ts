@@ -1,14 +1,40 @@
-import { Injectable } from '@nestjs/common';
-import { CreateBasketDto } from './dto/create-basket.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { AddToBasketDto } from './dto/create-basket.dto';
 
 @Injectable()
 export class BasketService {
-  create(createBasketDto: CreateBasketDto) {
-    return 'This action adds a new basket';
-  }
+  constructor(private readonly prisma: PrismaService) {}
+  
+  async addProductToBasket(userId: number, dto: AddToBasketDto) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: dto.productId },
+    });
 
-  findAll() {
-    return `This action returns all basket`;
+    if (!product) {
+      throw new NotFoundException('Товар не найден');
+    }
+
+    const basketProduct = await this.prisma.basketProduct.upsert({
+      where: {
+        basketId_productId: {
+          basketId: userId,
+          productId: dto.productId,
+        },
+      },
+      create: {
+        basketId: userId,
+        productId: dto.productId,
+        quantity: dto.quantity || 1,
+      },
+      update: {
+        quantity: {
+          increment: dto.quantity || 1,
+        },
+      },
+    });
+
+    return { message: 'Товар успешно добавлен в корзину', basketProduct };
   }
 
   findOne(id: number) {
