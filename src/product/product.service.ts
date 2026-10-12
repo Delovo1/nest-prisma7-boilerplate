@@ -1,6 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { Prisma } from '@prisma/client';
+
 
 
 @Injectable()
@@ -89,7 +92,68 @@ export class ProductService {
     })
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: number) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+        if (!product) {
+          throw new NotFoundException('Товар с таким ID не найден');
+        }
+    
+        await this.prisma.product.delete({
+          where: { id },
+        });
+    
+        return { message: 'Товар успешно удален' };
+        
+  }
+
+  
+  async update(id: number, dto: UpdateProductDto) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) {
+      throw new NotFoundException('Товар не найден');
+    }
+
+    const updateData: Prisma.ProductUpdateInput = {
+      name: dto.name,
+      price: dto.price,
+      description: dto.description,
+      imageSrc: dto.imageSrc,
+    };
+
+    if (dto.categoryIds) {
+      if (!dto.categoryIds.length) {
+        throw new BadRequestException('Товар не может быть без категорий!');
+      }
+
+      const uniqueIds = [...new Set(dto.categoryIds)];
+      const count = await this.prisma.category.count({
+        where: {
+          id: { in: uniqueIds },
+        },
+      });
+
+      if (count !== uniqueIds.length) {
+        throw new BadRequestException('Одна или несколько категорий невалидны в запросе');
+      }
+
+      updateData.categories = {
+        deleteMany: {},
+        createMany: {
+          data: uniqueIds.map((catId) => ({ categoryId: catId })),
+        },
+      };
+    }
+
+    return this.prisma.product.update({
+      where: { id },
+      data: updateData,
+      include: {
+        categories: {
+          select: {
+            category: true,
+          },
+        },
+      },
+    });
   }
 }
