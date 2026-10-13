@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -46,11 +46,35 @@ export class CategoryService {
     return newCategory
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: number, updateData: UpdateCategoryDto) {
+    const category = await this.prisma.category.findUnique({
+      where: {
+        name: updateData.name,
+      }
+    })
+
+    if(category && category.id !== id) throw new ConflictException('Это название категории уже занято');
+
+    return this.prisma.category.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+      },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
-  }
+  async remove(id: number) {
+    const category = await this.prisma.category.findUnique({ where: { id } });
+    if (!category) {
+      throw new NotFoundException('Категория с таким ID не найдена');
+    }
+  
+    await this.prisma.category.delete({
+      where: { id },
+    });
+  
+    return { message: 'Категория успешно удалена' };
+    }
 }

@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UseGuards, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddToBasketDto } from './dto/create-basket.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Injectable()
 export class BasketService {
   constructor(private readonly prisma: PrismaService) {}
@@ -37,8 +39,24 @@ export class BasketService {
     return { message: 'Товар успешно добавлен в корзину', basketProduct };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} basket`;
+  async findOne(user_id: number, id: number) {
+    const basketProduct = await this.prisma.basketProduct.findUnique({
+      where: {
+        basketId_productId: {
+          basketId: user_id,
+          productId: id,
+        },
+      },
+      include: {
+        product: true,
+      },
+    });
+    if(!basketProduct) throw new BadRequestException("Нет такого товара в корзине!")
+    return basketProduct;
+  }
+
+  findAll() {
+
   }
 
   remove(id: number) {

@@ -18,10 +18,8 @@ export class AuthService {
       throw new ConflictException('Пользователь с таким логином уже существует');
     }
 
-    // 3. Хешируем
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    // 4. Создаем запись
     const newUser = await this.prisma.user.create({
       data: {
         username: data.username,
