@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Request } from '@nestjs/common';
 import { BasketService } from './basket.service';
 import { AddToBasketDto } from './dto/create-basket.dto';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 @Controller('basket')
 export class BasketController {
@@ -21,12 +21,12 @@ export class BasketController {
   }
 
   @Get()
-  findAll() {
-    return this.basketService.findAll();
+  findAll(@Request() req) {
+    return this.basketService.findAll(req.user.sub);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.basketService.remove(+id);
+  remove(@Request() req, @Param('id') id: string) {
+    return this.basketService.remove(req.user.sub, +id);
   }
 }

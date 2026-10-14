@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UseGuards, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddToBasketDto } from './dto/create-basket.dto';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 @UseGuards(AuthGuard)
 @Injectable()
@@ -55,11 +55,40 @@ export class BasketService {
     return basketProduct;
   }
 
-  findAll() {
-
+  async findAll(user_id: number) {
+    return this.prisma.basketProduct.findMany({
+      where: {
+        basketId: user_id,
+      },
+      include: {
+        product: true,
+      },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} basket`;
+  async remove(user_id: number, id: number) {
+  const basketProduct = await this.prisma.basketProduct.findUnique({
+    where: {
+      basketId_productId: {
+        basketId: user_id,
+        productId: id,
+      },
+    },
+  });
+
+  if (!basketProduct) {
+    throw new NotFoundException('Данный товар отсутствует в вашей корзине');
+  }
+
+  await this.prisma.basketProduct.delete({
+    where: {
+      basketId_productId: {
+        basketId: user_id,
+        productId: id,
+      },
+    },
+  });
+  
+  return { message: 'Товар успешно удален из корзины' };
   }
 }
