@@ -12,6 +12,7 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        role: true,
       }
     })
   }
@@ -23,7 +24,8 @@ export class UsersService {
         },
         select: {
           id: true,
-          username: true
+          username: true,
+          role: true,
         },
       });
       if(!user) throw new BadRequestException("Нет такого пользователя!");
