@@ -4,14 +4,16 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  // 2. Включаем глобальную валидацию
+  app.enableCors({
+    origin: 'http://localhost:5173', 
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, 
+  });
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // Автоматически удалит из запроса любые лишние поля, которых нет в DTO (защита от хакеров)
-    forbidNonWhitelisted: true, // Выбросит ошибку, если фронтенд шлет неизвестные серверу поля
+    whitelist: true,
+    forbidNonWhitelisted: true, 
   }));
 
   await app.listen(3000);
 }
 bootstrap();
-// TypeScript: Restart TS Server
