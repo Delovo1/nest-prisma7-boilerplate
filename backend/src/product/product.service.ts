@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -73,7 +73,8 @@ export class ProductService {
   }
 
   async findOne(id: number) {
-    return await this.prisma.product.findMany({
+
+    const product =  await this.prisma.product.findUnique({
       where: {
         id: id,
       },
@@ -90,6 +91,8 @@ export class ProductService {
       }
       }
     })
+    if(!product) throw new NotFoundException('Продукт с таким ID не найден');
+    return product;
   }
 
   async remove(id: number) {

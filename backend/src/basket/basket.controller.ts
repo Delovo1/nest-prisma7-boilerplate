@@ -2,8 +2,6 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Requ
 import { BasketService } from './basket.service';
 import { AddToBasketDto } from './dto/create-basket.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles, Role } from '../auth/decorators/roles.decorator';
 
 @Controller('basket')
 export class BasketController {

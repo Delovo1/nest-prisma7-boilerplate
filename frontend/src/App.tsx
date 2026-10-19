@@ -11,7 +11,6 @@ function ProductList() {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        // Замени на свой реальный URL бэкенда (например, http://localhost:3000/products)
         const response = await fetch('http://localhost:3000/product'); 
         
         if (!response.ok) {

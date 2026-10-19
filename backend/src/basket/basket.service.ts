@@ -1,9 +1,7 @@
-import { Injectable, NotFoundException, UseGuards, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddToBasketDto } from './dto/create-basket.dto';
-import { AuthGuard } from '../auth/guards/auth.guard';
 
-@UseGuards(AuthGuard)
 @Injectable()
 export class BasketService {
   constructor(private readonly prisma: PrismaService) {}

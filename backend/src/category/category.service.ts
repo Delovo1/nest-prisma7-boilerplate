@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -22,18 +22,16 @@ export class CategoryService {
   }
 
   async findAll() {
-   const newCategory = await this.prisma.category.findMany({
+  return await this.prisma.category.findMany({
       select: {
         id: true,
         name: true
       },
     });
-    if(!newCategory.length) throw new BadRequestException("Нет категорий");
-    return newCategory;
   }
 
   async findOne(id: number) {
-    const newCategory = await this.prisma.category.findMany({
+    const newCategory = await this.prisma.category.findUnique({
       where: {
         id: id,
       },
@@ -42,7 +40,7 @@ export class CategoryService {
         name: true
       },
     });
-    if(!newCategory.length) throw new BadRequestException("Нет категории по такому id");
+    if(!newCategory) throw new NotFoundException("Нет категории по такому id");
     return newCategory
   }
 
