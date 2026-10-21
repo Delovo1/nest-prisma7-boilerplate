@@ -11,7 +11,7 @@ export class ProductService {
 
     constructor(private readonly prisma: PrismaService) {}
   
-  async create(data: CreateProductDto) {
+  async create(data: CreateProductDto, userId: number) {
     const uniqueIds = [...new Set(data.categoryIds)];
 
     const count = await this.prisma.category.count({
@@ -31,6 +31,7 @@ export class ProductService {
       price: data.price,
       description: data.description,
       imageSrc: data.imageSrc,
+      userId: userId,
       categories: {
         create: uniqueIds.map((id) => ({
           categoryId: id,
@@ -95,25 +96,24 @@ export class ProductService {
     return product;
   }
 
-  async remove(id: number) {
-    const product = await this.prisma.product.findUnique({ where: { id } });
+  async remove(id: number, userId: number) {
+    const product = await this.prisma.product.findFirst({ where: { id: id,  userId: userId} });
         if (!product) {
-          throw new NotFoundException('Товар с таким ID не найден');
+          throw new NotFoundException('Товар с таким ID не найден или у вас нет прав!');
         }
     
         await this.prisma.product.delete({
-          where: { id },
+          where: { id, userId: userId },
         });
     
         return { message: 'Товар успешно удален' };
-        
   }
 
   
-  async update(id: number, dto: UpdateProductDto) {
-    const product = await this.prisma.product.findUnique({ where: { id } });
+  async update(id: number, dto: UpdateProductDto, userId: number) {
+    const product = await this.prisma.product.findFirst({ where: { id: id, userId: userId } });
     if (!product) {
-      throw new NotFoundException('Товар не найден');
+      throw new NotFoundException('Товар не найден или у вас нет прав!');
     }
 
     const updateData: Prisma.ProductUpdateInput = {

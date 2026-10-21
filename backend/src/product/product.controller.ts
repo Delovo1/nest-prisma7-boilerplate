@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, BadRequestException, UseGuards } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -13,8 +13,8 @@ export class ProductController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SELLER)
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+  create(@Body() createProductDto: CreateProductDto, @Req() req: any) {
+    return this.productService.create(createProductDto, +req.user.sub);
   }
 
   @Get()
@@ -28,23 +28,22 @@ export class ProductController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SELLER)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(+id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.productService.remove(+id, +req.user.sub);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SELLER)
   @Patch(':id') 
-    update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    update(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateProductDto) {
       const hasUpdates = Object.values(dto).some(value => value !== undefined);
   
       if (!hasUpdates) {
         throw new BadRequestException('Тело запроса не может быть пустым. Передайте хотя бы одно поле для обновления.');
       }
-  
-      return this.productService.update(+id, dto);
+      return this.productService.update(+id, dto, +req.user.sub);
     }
   
 }

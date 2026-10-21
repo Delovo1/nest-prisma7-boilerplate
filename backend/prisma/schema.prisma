@@ -14,11 +14,12 @@ enum Role {
 
 // Таблица пользователей
 model User {
-  id        Int      @id @default(autoincrement()) // В SQL: id SERIAL PRIMARY KEY\
+  id        Int      @id @default(autoincrement()) // В SQL: id SERIAL PRIMARY KEY
   role      Role     @default(BUYER)
   username  String   @unique                       // В SQL: username TEXT UNIQUE
   password  String                                 // В SQL: password TEXT
   basket    Basket?                                // Виртуальное поле для NestJS
+  products Product[]
 }
 
 // Таблица корзин (ID корзины равен ID пользователя)
@@ -51,11 +52,13 @@ model Category {
 model Product {
   id          Int               @id @default(autoincrement())
   name        String
-  price       Float
+  price       Decimal @db.Decimal(10, 2)
   description String?
   imageSrc    String?
+  userId      Int
   categories  ProductCategory[] // Связь с промежуточной таблицей
   baskets     BasketProduct[]
+  user        User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Промежуточная таблица связей Товаров и Категорий (Многие-ко-Многим)
