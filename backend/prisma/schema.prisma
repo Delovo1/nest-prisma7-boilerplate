@@ -11,6 +11,11 @@ enum Role {
   SELLER
   ADMIN
 }
+enum OrderStatus {
+  PENDING
+  CANCELLED
+  PAID
+}
 
 // Таблица пользователей
 model User {
@@ -20,13 +25,15 @@ model User {
   password  String                                 // В SQL: password TEXT
   basket    Basket?                                // Виртуальное поле для NestJS
   products Product[]
+  orders Order[]
 }
 
 // Таблица корзин (ID корзины равен ID пользователя)
 model Basket {
   id        Int             @id                    // В SQL: id INT PRIMARY KEY
+  products  BasketProduct[]                       
+
   user      User            @relation(fields: [id], references: [id], onDelete: Cascade) // В SQL: REFERENCES "User"(id)
-  products  BasketProduct[]                        // Виртуальное поле для NestJS
 }
 
 // Таблица связей товаров и корзин (Многие-ко-Многим)
@@ -35,11 +42,9 @@ model BasketProduct {
   productId Int                                    // В SQL: productId INT
   quantity  Int             @default(1)            // В SQL: quantity INT DEFAULT 1
 
-  // Настройка внешних ключей в SQL:
   basket    Basket          @relation(fields: [basketId], references: [id], onDelete: Cascade)
   product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@id([basketId, productId])                      // В SQL: PRIMARY KEY (basketId, productId)
+  @@id([basketId, productId])                      
 }
 
 model Category {
@@ -56,8 +61,10 @@ model Product {
   description String?
   imageSrc    String?
   userId      Int
-  categories  ProductCategory[] // Связь с промежуточной таблицей
+  categories  ProductCategory[] 
   baskets     BasketProduct[]
+  orderItems  OrderItem[]
+
   user        User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -65,9 +72,31 @@ model Product {
 model ProductCategory {
   productId  Int
   categoryId Int
-  
+
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  @@id([productId, categoryId]) 
+}
 
-  @@id([productId, categoryId]) // Составной первичный ключ
+model Order {
+  id Int @id @default(autoincrement())
+  createdAt DateTime   @default(now())
+  userId Int
+  status OrderStatus @default(PENDING)
+  deliveryAddress String
+  items     OrderItem[]
+
+  user   User   @relation(fields: [userId], references:[id], onDelete: Cascade)
+}
+
+model OrderItem {
+  orderId   Int
+  productId   Int
+  title   String
+  quantity   Int
+  price   Decimal @db.Decimal(10, 2)
+
+  order Order @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  @@id([orderId, productId])
 }
