@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { BasketService } from './basket.service';
 import { AddToBasketDto } from './dto/create-basket.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -10,7 +21,7 @@ export class BasketController {
   @UseGuards(AuthGuard)
   @Post('products')
   addProduct(@Req() req: any, @Body() dto: AddToBasketDto) {
-    const userId = req.user.sub; 
+    const userId = req.user.sub;
     return this.basketService.addProductToBasket(userId, dto);
   }
 

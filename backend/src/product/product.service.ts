@@ -1,16 +1,17 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Prisma } from '@prisma/client';
 
-
-
 @Injectable()
 export class ProductService {
+  constructor(private readonly prisma: PrismaService) {}
 
-    constructor(private readonly prisma: PrismaService) {}
-  
   async create(data: CreateProductDto, userId: number) {
     const uniqueIds = [...new Set(data.categoryIds)];
 
@@ -21,39 +22,41 @@ export class ProductService {
     });
 
     const allExist = count === uniqueIds.length;
-    if(!allExist) {
-      throw new BadRequestException('Одна или несколько категорий невалидны в запросе');
+    if (!allExist) {
+      throw new BadRequestException(
+        'Одна или несколько категорий невалидны в запросе',
+      );
     }
 
     const newProduct = await this.prisma.product.create({
-    data: {
-      name: data.name,
-      price: data.price,
-      description: data.description,
-      imageSrc: data.imageSrc,
-      userId: userId,
-      categories: {
-        create: uniqueIds.map((id) => ({
-          categoryId: id,
-        })),
+      data: {
+        name: data.name,
+        price: data.price,
+        description: data.description,
+        imageSrc: data.imageSrc,
+        userId: userId,
+        quantity: data.quantity,
+        categories: {
+          create: uniqueIds.map((id) => ({
+            categoryId: id,
+          })),
+        },
       },
-    },
-    select: {
-      id: true,
-      name: true,
-      price: true,
-      description: true,
-      imageSrc: true,
-      categories: {
-        select: {
-          category: true 
-        }
-      }
-    },
-  });
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        description: true,
+        imageSrc: true,
+        categories: {
+          select: {
+            category: true,
+          },
+        },
+      },
+    });
 
-    return newProduct
-        
+    return newProduct;
   }
 
   async findAll() {
@@ -66,16 +69,15 @@ export class ProductService {
         imageSrc: true,
         categories: {
           select: {
-            category: true 
-          }
-      }
-      }
-    })
+            category: true,
+          },
+        },
+      },
+    });
   }
 
   async findOne(id: number) {
-
-    const product =  await this.prisma.product.findUnique({
+    const product = await this.prisma.product.findUnique({
       where: {
         id: id,
       },
@@ -87,31 +89,36 @@ export class ProductService {
         imageSrc: true,
         categories: {
           select: {
-            category: true 
-          }
-      }
-      }
-    })
-    if(!product) throw new NotFoundException('Продукт с таким ID не найден');
+            category: true,
+          },
+        },
+      },
+    });
+    if (!product) throw new NotFoundException('Продукт с таким ID не найден');
     return product;
   }
 
   async remove(id: number, userId: number) {
-    const product = await this.prisma.product.findFirst({ where: { id: id,  userId: userId} });
-        if (!product) {
-          throw new NotFoundException('Товар с таким ID не найден или у вас нет прав!');
-        }
-    
-        await this.prisma.product.delete({
-          where: { id, userId: userId },
-        });
-    
-        return { message: 'Товар успешно удален' };
+    const product = await this.prisma.product.findFirst({
+      where: { id: id, userId: userId },
+    });
+    if (!product) {
+      throw new NotFoundException(
+        'Товар с таким ID не найден или у вас нет прав!',
+      );
+    }
+
+    await this.prisma.product.delete({
+      where: { id, userId: userId },
+    });
+
+    return { message: 'Товар успешно удален' };
   }
 
-  
   async update(id: number, dto: UpdateProductDto, userId: number) {
-    const product = await this.prisma.product.findFirst({ where: { id: id, userId: userId } });
+    const product = await this.prisma.product.findFirst({
+      where: { id: id, userId: userId },
+    });
     if (!product) {
       throw new NotFoundException('Товар не найден или у вас нет прав!');
     }
@@ -136,7 +143,9 @@ export class ProductService {
       });
 
       if (count !== uniqueIds.length) {
-        throw new BadRequestException('Одна или несколько категорий невалидны в запросе');
+        throw new BadRequestException(
+          'Одна или несколько категорий невалидны в запросе',
+        );
       }
 
       updateData.categories = {

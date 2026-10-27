@@ -23,6 +23,12 @@ export class CreateProductDto {
   @Min(1, { message: 'Минимальная цена — 1' })
   price: number;
 
+  @IsNumber({}, { message: 'Количество должно быть числом' })
+  @IsNotEmpty({ message: 'Количество не может быть пустым' })
+  @IsPositive({ message: 'Количество должно быть больше нуля' })
+  @Min(1, { message: 'Минимальное количество — 1' })
+  quantity: number;
+
   @IsString({ message: 'Описание должно быть строкой' })
   @IsOptional() // Поле description в Prisma помечено как String?, значит оно необязательное
   description?: string;

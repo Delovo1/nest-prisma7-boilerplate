@@ -36,6 +36,6 @@ export class OrderItemDto {
   @IsNumber({}, { message: 'Количество должно быть числом' })
   @IsNotEmpty({ message: 'Количество не может быть пустым' })
   @IsPositive({ message: 'Количество должна быть больше нуля' })
-  @Min(1, { message: 'Минимальное количество — 1' })
+  @Min(1, { message: 'Минимальное количество = 1' })
   quantity: number;
 }

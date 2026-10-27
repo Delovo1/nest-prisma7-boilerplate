@@ -8,5 +8,5 @@ export class AddToBasketDto {
   @IsOptional()
   @IsPositive({ message: 'Количество должно быть больше нуля' })
   @Min(1, { message: 'Минимальное количество товара — 1' })
-  quantity?: number = 1; // значение по умолчанию
+  quantity: number = 1; // значение по умолчанию
 }

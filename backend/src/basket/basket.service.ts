@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddToBasketDto } from './dto/create-basket.dto';
 
 @Injectable()
 export class BasketService {
   constructor(private readonly prisma: PrismaService) {}
-  
+
   async addProductToBasket(userId: number, dto: AddToBasketDto) {
     const product = await this.prisma.product.findUnique({
       where: { id: dto.productId },
@@ -13,6 +17,11 @@ export class BasketService {
 
     if (!product) {
       throw new NotFoundException('Товар не найден');
+    }
+    if (product.quantity < dto.quantity) {
+      throw new BadRequestException(
+        'Вы пытаетесь положить в корзину больше, чем есть на складе!',
+      );
     }
 
     const basketProduct = await this.prisma.basketProduct.upsert({
@@ -49,7 +58,8 @@ export class BasketService {
         product: true,
       },
     });
-    if(!basketProduct) throw new BadRequestException("Нет такого товара в корзине!")
+    if (!basketProduct)
+      throw new BadRequestException('Нет такого товара в корзине!');
     return basketProduct;
   }
 
@@ -65,28 +75,28 @@ export class BasketService {
   }
 
   async remove(user_id: number, id: number) {
-  const basketProduct = await this.prisma.basketProduct.findUnique({
-    where: {
-      basketId_productId: {
-        basketId: user_id,
-        productId: id,
+    const basketProduct = await this.prisma.basketProduct.findUnique({
+      where: {
+        basketId_productId: {
+          basketId: user_id,
+          productId: id,
+        },
       },
-    },
-  });
+    });
 
-  if (!basketProduct) {
-    throw new NotFoundException('Данный товар отсутствует в вашей корзине');
-  }
+    if (!basketProduct) {
+      throw new NotFoundException('Данный товар отсутствует в вашей корзине');
+    }
 
-  await this.prisma.basketProduct.delete({
-    where: {
-      basketId_productId: {
-        basketId: user_id,
-        productId: id,
+    await this.prisma.basketProduct.delete({
+      where: {
+        basketId_productId: {
+          basketId: user_id,
+          productId: id,
+        },
       },
-    },
-  });
-  
-  return { message: 'Товар успешно удален из корзины' };
+    });
+
+    return { message: 'Товар успешно удален из корзины' };
   }
 }

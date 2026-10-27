@@ -60,6 +60,7 @@ model Product {
   price       Decimal @db.Decimal(10, 2)
   description String?
   imageSrc    String?
+  quantity    Int
   userId      Int
   categories  ProductCategory[] 
   baskets     BasketProduct[]
