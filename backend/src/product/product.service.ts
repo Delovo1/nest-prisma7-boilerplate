@@ -48,6 +48,7 @@ export class ProductService {
         price: true,
         description: true,
         imageSrc: true,
+        quantity: true,
         categories: {
           select: {
             category: true,
@@ -67,6 +68,7 @@ export class ProductService {
         price: true,
         description: true,
         imageSrc: true,
+        quantity: true,
         categories: {
           select: {
             category: true,
@@ -87,6 +89,7 @@ export class ProductService {
         price: true,
         description: true,
         imageSrc: true,
+        quantity: true,
         categories: {
           select: {
             category: true,
