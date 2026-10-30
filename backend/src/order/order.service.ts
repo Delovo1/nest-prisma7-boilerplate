@@ -81,7 +81,11 @@ export class OrderService {
   }
 
   findAll() {
-    return `This action returns all order`;
+    return this.prisma.order.findMany({
+      include: {
+        items: true,
+      },
+    });
   }
 
   findOne(id: number) {
