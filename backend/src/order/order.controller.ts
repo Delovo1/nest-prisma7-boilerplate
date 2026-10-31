@@ -8,6 +8,7 @@ import {
   Delete,
   Request,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -27,16 +28,23 @@ export class OrderController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @Get()
-  findAll() {
-    return this.orderService.findAll();
+  @Get('my-orders')
+  myOrders(@Request() req) {
+    return this.orderService.myOrders(req.user.sub);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.orderService.findOne(+id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SELLER)
+  @Get('seller/my-orders')
+  mySellerOrders(@Request() req) {
+    return this.orderService.findSellerOrders(req.user.sub);
   }
 
   @Patch(':id')
@@ -44,6 +52,8 @@ export class OrderController {
     return this.orderService.update(+id, updateOrderDto);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.orderService.remove(+id);

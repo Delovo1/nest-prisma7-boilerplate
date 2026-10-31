@@ -73,6 +73,12 @@ export class OrderService {
         },
       });
     }
+    await this.prisma.basketProduct.deleteMany({
+      where: {
+        basketId: id,
+        productId: { in: productIds },
+      },
+    });
 
     return this.prisma.order.findUnique({
       where: { id: order.id },
@@ -80,8 +86,11 @@ export class OrderService {
     });
   }
 
-  findAll() {
+  myOrders(userId: number) {
     return this.prisma.order.findMany({
+      where: {
+        userId: userId,
+      },
       include: {
         items: true,
       },
@@ -89,7 +98,40 @@ export class OrderService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} order`;
+    return this.prisma.order.findUnique({
+      where: {
+        id: id,
+      },
+      include: {
+        items: true,
+      },
+    });
+  }
+
+  findSellerOrders(sellerId: number) {
+    return this.prisma.order.findMany({
+      where: {
+        items: {
+          some: {
+            product: {
+              userId: sellerId,
+            },
+          },
+        },
+      },
+      include: {
+        items: {
+          where: {
+            product: {
+              userId: sellerId,
+            },
+          },
+        },
+      },
+      orderBy: {
+        id: 'desc',
+      },
+    });
   }
 
   update(id: number, updateOrderDto: UpdateOrderDto) {
@@ -97,6 +139,10 @@ export class OrderService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} order`;
+    return this.prisma.order.delete({
+      where: {
+        id: id,
+      },
+    });
   }
 }
